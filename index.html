@@ -196,7 +196,7 @@ body{overflow:hidden}
     <div>
       <div class="bell"><i></i>띵동— 누군가 문 앞에 왔어요</div>
       <button class="btn" id="goIntro">문 열어보기</button>
-      <button class="admin-link" id="goAdmin">관리자</button>
+      <button class="admin-link" id="goAdmin">관리자 · v5</button>
     </div>
   </section>
 
@@ -513,8 +513,8 @@ function restart(){
 /* ---------- 기록 ---------- */
 function record(T){
   if(!ENDPOINT)return;
-  try{fetch(ENDPOINT,{method:"POST",mode:"no-cors",keepalive:true,headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({code:T.code,hex:T.hex,ans:state.ans.join("")})}).catch(()=>{})}catch(e){}
+  const u=ENDPOINT+"?rec="+encodeURIComponent(T.code)+"&hex="+encodeURIComponent(T.hex)+"&ans="+state.ans.join("")+"&t="+Date.now();
+  try{const img=new Image();(window.__rec=window.__rec||[]).push(img);img.src=u}catch(e){}
 }
 
 /* ---------- 관리자 ---------- */
