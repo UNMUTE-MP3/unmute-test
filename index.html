@@ -196,7 +196,7 @@ body{overflow:hidden}
     <div>
       <div class="bell"><i></i>띵동— 누군가 문 앞에 왔어요</div>
       <button class="btn" id="goIntro">문 열어보기</button>
-      <button class="admin-link" id="goAdmin">관리자 · v5</button>
+      <button class="admin-link" id="goAdmin">관리자 · v6</button>
     </div>
   </section>
 
@@ -486,7 +486,7 @@ function renderResult(){
       ${mine?`<button class="btn" id="copyBtn">결과 복사하기</button>`:`<button class="btn" id="mineBtn">내 결과로 돌아가기</button>`}
       <div class="two"><button class="btn ghost" id="allBtn">8가지 색 모두 보기</button><button class="btn ghost" id="retry">다시 하기</button></div>
     </div>
-    <div class="foot"><span class="mark">UNMUTE</span><br>음악을 틀면 색이 돌아오는 손동작 DJ 리듬게임<br>부스에서 직접 플레이해 보세요</div>`;
+    <div class="foot"><span class="sys" id="recSt">${mine?recStatus:""}</span><br><span class="mark">UNMUTE</span><br>음악을 틀면 색이 돌아오는 손동작 DJ 리듬게임<br>부스에서 직접 플레이해 보세요</div>`;
   $("hexBtn").onclick=()=>copy(T.hex,`${T.hex} 복사됨`);
   $("oppBtn").onclick=()=>{state.view=flip(key);renderResult();$("result").scrollTop=0};
   if($("copyBtn"))$("copyBtn").onclick=()=>copy(`[UNMUTE 컬러 테스트] 내 색은 ${T.code} (${T.kname} ${T.hex})\n${T.nick}\n어울리는 음악: ${T.tags.join(", ")}`,"결과를 복사했어요");
@@ -511,10 +511,23 @@ function restart(){
   $("flood").classList.remove("on");setColor("#8c8c95");show("start");
 }
 /* ---------- 기록 ---------- */
+let recStatus="";
+function setRec(st){recStatus=st;const el=document.getElementById("recSt");if(el)el.textContent=st}
 function record(T){
   if(!ENDPOINT)return;
-  const u=ENDPOINT+"?rec="+encodeURIComponent(T.code)+"&hex="+encodeURIComponent(T.hex)+"&ans="+state.ans.join("")+"&t="+Date.now();
-  try{const img=new Image();(window.__rec=window.__rec||[]).push(img);img.src=u}catch(e){}
+  const base=ENDPOINT+"?rec="+encodeURIComponent(T.code)+"&hex="+encodeURIComponent(T.hex)+"&ans="+state.ans.join("")+"&t="+Date.now();
+  const beacon=()=>{try{const img=new Image();(window.__rec=window.__rec||[]).push(img);img.src=base+"&via=img"}catch(e){}};
+  setRec("기록 중…");
+  /* 1차: script 태그로 보내고 서버 응답까지 확인 */
+  try{
+    const cb="__rec_"+Date.now(),s=document.createElement("script");
+    let finished=false;
+    const done=()=>{finished=true;clearTimeout(t);try{delete window[cb]}catch(e){window[cb]=undefined}s.remove()};
+    const t=setTimeout(()=>{if(finished)return;done();beacon();setRec("기록 전송됨 (확인 대기)")},10000);
+    window[cb]=d=>{done();if(d&&d.ok)setRec("기록 완료 ✓");else{setRec("기록 거절됨")}};
+    s.onerror=()=>{if(finished)return;done();beacon();setRec("기록 전송됨 (확인 대기)")};
+    s.src=base+"&callback="+cb;document.head.appendChild(s);
+  }catch(e){beacon();setRec("기록 전송됨 (확인 대기)")}
 }
 
 /* ---------- 관리자 ---------- */
